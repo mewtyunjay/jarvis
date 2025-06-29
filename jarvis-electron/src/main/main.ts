@@ -8,24 +8,16 @@ import { createTray } from './tray.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const isDev = !app.isPackaged
+// const isDev = !app.isPackaged
 
 let mainWindow: BrowserWindow | null = null
 
 async function createWindow() {
   mainWindow = createMainWindow()
   
-  if (isDev) {
-    // Check if dev server is running
-    try {
-      await mainWindow.loadURL('http://localhost:5173')
-    } catch (error) {
-      console.error('Failed to load dev server, loading built files:', error)
-      await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-    }
-  } else {
-    await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
+  // Force loading built files for testing
+  console.log('Main: Loading built files from:', join(__dirname, '../renderer/index.html'))
+  await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
 
   mainWindow.on('closed', () => {
     mainWindow = null
@@ -35,8 +27,11 @@ async function createWindow() {
 }
 
 app.whenReady().then(() => {
+  console.log('Main: App ready, creating window...')
   createWindow()
+  console.log('Main: Setting up IPC...')
   setupIPC()
+  console.log('Main: Creating tray...')
   createTray()
 
   app.on('activate', () => {

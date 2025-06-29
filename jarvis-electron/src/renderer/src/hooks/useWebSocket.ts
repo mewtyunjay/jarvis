@@ -10,13 +10,17 @@ export function useWebSocket() {
   const connect = async () => {
     if (isConnecting) return
 
+    console.log('WebSocket: Starting connection to:', settings.backendUrl)
     setIsConnecting(true)
     setAgentStatus({ backend: 'connecting' })
 
     try {
+      console.log('WebSocket: Calling electronAPI.websocket.connect')
       const result = await window.electronAPI?.websocket.connect(settings.backendUrl)
+      console.log('WebSocket: Connection result:', result)
       
       if (result?.success) {
+        console.log('WebSocket: Connection successful')
         setIsConnected(true)
         setAgentStatus({ 
           connected: true, 
@@ -25,10 +29,11 @@ export function useWebSocket() {
         })
         window.electronAPI?.logger.log('info', 'WebSocket connected successfully')
       } else {
+        console.log('WebSocket: Connection failed with result:', result)
         throw new Error(result?.message || 'Connection failed')
       }
     } catch (error) {
-      console.error('WebSocket connection failed:', error)
+      console.error('WebSocket: Connection failed with error:', error)
       setIsConnected(false)
       setAgentStatus({ 
         connected: false, 

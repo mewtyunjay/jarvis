@@ -47,3 +47,26 @@ export interface AppSettings {
     minimizeToTray: boolean
   }
 }
+
+export interface ElectronAPI {
+  app: {
+    getVersion: () => Promise<string>
+    getName: () => Promise<string>
+  }
+  websocket: {
+    connect: (url: string) => Promise<{ success: boolean; message: string }>
+    disconnect: () => Promise<{ success: boolean; message: string }>
+    send: (message: any) => Promise<{ success: boolean; message: string }>
+    onMessage: (callback: (message: string) => void) => void
+    offMessage: (callback: (message: string) => void) => void
+  }
+  logger: {
+    log: (level: string, message: string) => void
+  }
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI
+  }
+}

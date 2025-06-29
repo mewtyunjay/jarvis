@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Wifi, WifiOff, Circle } from 'lucide-react'
+import { useAppStore } from '../stores/appStore'
+import { useWebSocket } from '../hooks/useWebSocket'
 
 export function StatusBar() {
   const [appVersion, setAppVersion] = useState<string>('')
-  const [isConnected, setIsConnected] = useState(false)
+  const { agentStatus } = useAppStore()
+  const { isConnected } = useWebSocket()
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -30,7 +33,7 @@ export function StatusBar() {
       </div>
       
       <div className="flex items-center space-x-4">
-        <span>Ready</span>
+        <span>{agentStatus.backend === 'connecting' ? 'Connecting...' : 'Ready'}</span>
         {appVersion && <span>v{appVersion}</span>}
       </div>
     </div>
