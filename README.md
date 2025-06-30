@@ -7,20 +7,14 @@ A full-stack AI assistant application built with Electron frontend and Python Fa
 ## Architecture
 
 - **Frontend**: Electron desktop application with React and TypeScript
-- **Backend**: Python FastAPI server with WebSocket support
-- **Communication**: Real-time WebSocket connection between frontend and backend
-
-## Components
-
-- `jarvis-electron/` - Desktop application frontend
-- `jarvis-backend/` - Python API server and AI agent system
+- **Backend**: FastAPI server with OpenAI Agents SDK (for now)
 
 ## Quick Start
 
 1. Start the backend:
    ```bash
    cd jarvis-backend
-   python main.py
+   uv run python main.py
    ```
 
 2. Start the frontend:

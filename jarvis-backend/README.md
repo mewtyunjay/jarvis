@@ -6,7 +6,7 @@ Python FastAPI backend server for the Jarvis AI Assistant.
 
 ```bash
 uv sync
-python main.py
+uv run python main.py
 ```
 
 Server runs on `http://localhost:8000` with WebSocket at `/ws`
