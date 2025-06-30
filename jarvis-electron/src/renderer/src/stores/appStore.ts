@@ -29,7 +29,7 @@ type AppStore = AppState & AppActions
 
 const defaultSettings: AppSettings = {
   theme: 'system',
-  backendUrl: 'ws://localhost:8000/ws',
+  backendUrl: 'ws://127.0.0.1:8000/ws',
   autoConnect: true,
   windowSettings: {
     alwaysOnTop: false,
@@ -120,7 +120,14 @@ export const useAppStore = create<AppStore>()(
           projects: state.projects,
           sidebarCollapsed: state.sidebarCollapsed,
           rightPanelCollapsed: state.rightPanelCollapsed
-        })
+        }),
+        onRehydrateStorage: () => (state) => {
+          // Migration: Update localhost URLs to IPv4
+          if (state?.settings?.backendUrl?.includes('localhost')) {
+            state.settings.backendUrl = state.settings.backendUrl.replace('localhost', '127.0.0.1')
+            console.log('Migrated WebSocket URL from localhost to 127.0.0.1')
+          }
+        }
       }
     ),
     { name: 'app-store' }

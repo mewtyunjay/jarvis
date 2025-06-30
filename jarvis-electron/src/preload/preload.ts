@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 export interface ElectronAPI {
+  test: {
+    ping: () => Promise<{ success: boolean; message: string }>
+  }
   app: {
     getVersion: () => Promise<string>
     getName: () => Promise<string>
@@ -18,6 +21,9 @@ export interface ElectronAPI {
 }
 
 const electronAPI: ElectronAPI = {
+  test: {
+    ping: () => ipcRenderer.invoke('test:ping')
+  },
   app: {
     getVersion: () => ipcRenderer.invoke('app:getVersion'),
     getName: () => ipcRenderer.invoke('app:getName')

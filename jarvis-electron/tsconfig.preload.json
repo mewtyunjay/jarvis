@@ -3,8 +3,8 @@
   "compilerOptions": {
     "outDir": "dist/preload",
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "noEmit": false,
     "jsx": "preserve",
     "allowImportingTsExtensions": false,

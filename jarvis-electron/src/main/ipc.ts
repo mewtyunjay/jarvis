@@ -6,6 +6,12 @@ let wsConnection: WebSocket | null = null
 export function setupIPC() {
   console.log('IPC: Setting up IPC handlers...')
   
+  // Add a test handler to verify IPC communication
+  ipcMain.handle('test:ping', () => {
+    console.log('IPC: Ping received from renderer')
+    return { success: true, message: 'Pong from main process' }
+  })
+  
   ipcMain.handle('app:getVersion', () => {
     return app.getVersion()
   })
@@ -54,8 +60,16 @@ export function setupIPC() {
         wsConnection!.on('error', (error) => {
           clearTimeout(timeout)
           console.error('IPC: WebSocket error:', error)
+          console.error('IPC: WebSocket error details:', {
+            message: error.message,
+            code: (error as any).code,
+            errno: (error as any).errno,
+            syscall: (error as any).syscall,
+            address: (error as any).address,
+            port: (error as any).port
+          })
           wsConnection = null
-          resolve({ success: false, message: error.message })
+          resolve({ success: false, message: `WebSocket connection failed: ${error.message}` })
         })
 
         wsConnection!.on('close', (code, reason) => {

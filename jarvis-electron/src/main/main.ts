@@ -8,16 +8,32 @@ import { createTray } from './tray.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// const isDev = !app.isPackaged
+const isDev = !app.isPackaged
 
 let mainWindow: BrowserWindow | null = null
 
 async function createWindow() {
   mainWindow = createMainWindow()
   
-  // Force loading built files for testing
-  console.log('Main: Loading built files from:', join(__dirname, '../renderer/index.html'))
-  await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  // Check if Vite dev server is running
+  let isViteRunning = false
+  if (isDev) {
+    try {
+      const response = await fetch('http://localhost:5173')
+      isViteRunning = response.ok
+    } catch {
+      isViteRunning = false
+    }
+  }
+  
+  if (isDev && isViteRunning) {
+    console.log('Main: Development mode - loading from Vite dev server')
+    await mainWindow.loadURL('http://localhost:5173')
+    mainWindow.webContents.openDevTools()
+  } else {
+    console.log('Main: Production mode - loading built files from:', join(__dirname, '../renderer/index.html'))
+    await mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
 
   mainWindow.on('closed', () => {
     mainWindow = null

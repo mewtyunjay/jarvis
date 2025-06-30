@@ -11,12 +11,23 @@ export function useWebSocket() {
     if (isConnecting) return
 
     console.log('WebSocket: Starting connection to:', settings.backendUrl)
+    console.log('WebSocket: Full settings object:', settings)
+    console.log('WebSocket: window.electronAPI available:', !!window.electronAPI)
+    console.log('WebSocket: window.electronAPI.websocket available:', !!window.electronAPI?.websocket)
+    
+    // Force IPv4 if localhost is detected
+    let connectionUrl = settings.backendUrl
+    if (connectionUrl.includes('localhost')) {
+      connectionUrl = connectionUrl.replace('localhost', '127.0.0.1')
+      console.log('WebSocket: Forcing IPv4, using URL:', connectionUrl)
+    }
+    
     setIsConnecting(true)
     setAgentStatus({ backend: 'connecting' })
 
     try {
-      console.log('WebSocket: Calling electronAPI.websocket.connect')
-      const result = await window.electronAPI?.websocket.connect(settings.backendUrl)
+      console.log('WebSocket: Calling electronAPI.websocket.connect with URL:', connectionUrl)
+      const result = await window.electronAPI?.websocket.connect(connectionUrl)
       console.log('WebSocket: Connection result:', result)
       
       if (result?.success) {
