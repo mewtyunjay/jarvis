@@ -10,7 +10,9 @@ dependencies = [
     "openai>=1.93.0",
     "openai-agents>=0.1.0",
     "pydantic>=2.11.7",
+    "pyright>=1.1.402",
     "python-dotenv>=1.1.1",
+    "pytz>=2024.2",
     "uvicorn>=0.35.0",
     "websockets>=15.0.1",
 ]
