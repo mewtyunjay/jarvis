@@ -20,6 +20,7 @@ dependencies = [
     "google-auth-httplib2>=0.2.0",
     "google-api-python-client>=2.112.0",
     "email-validator>=2.1.0",
+    "requests>=2.31.0",
 ]
 
 [dependency-groups]
