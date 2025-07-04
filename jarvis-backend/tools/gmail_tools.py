@@ -1119,7 +1119,7 @@ async def create_label(name: str, message_list_visibility: str = 'show', label_l
 
 @function_tool
 async def get_latest_emails(count: int = 5) -> str:
-    """Get the latest emails from inbox"""
+    """Get the latest emails from inbox with basic info (subject, sender, snippet)"""
     try:
         emails = await gmail_tools.search_emails('in:inbox', max_results=count)
         
@@ -1132,8 +1132,44 @@ async def get_latest_emails(count: int = 5) -> str:
             result += f"{i}. From: {email['from']}\n"
             result += f"   Subject: {email['subject']}\n"
             result += f"   Date: {email['date']}\n"
+            result += f"   ID: {email['id']}\n"
             result += f"   Snippet: {email['snippet'][:100]}...\n\n"
         
         return result
     except Exception as e:
         return f"❌ Failed to get latest emails: {e}"
+
+
+@function_tool
+async def get_latest_email_with_body() -> str:
+    """Get the most recent email from inbox with full body content"""
+    try:
+        emails = await gmail_tools.search_emails('in:inbox', max_results=1)
+        
+        if not emails:
+            return "📭 No emails found in inbox"
+        
+        latest_email = emails[0]
+        
+        # Get full email details including body
+        full_email = await gmail_tools.read_email(latest_email['id'])
+        
+        result = f"""📧 Latest Email:
+
+From: {full_email['from']}
+To: {full_email['to']}
+Subject: {full_email['subject']}
+Date: {full_email['date']}
+
+📄 Full Body:
+{full_email['body']}
+"""
+        
+        if full_email['attachments']:
+            result += f"\n📎 Attachments ({len(full_email['attachments'])}):\n"
+            for att in full_email['attachments']:
+                result += f"  - {att['filename']} ({att['size']} bytes)\n"
+        
+        return result
+    except Exception as e:
+        return f"❌ Failed to get latest email with body: {e}"

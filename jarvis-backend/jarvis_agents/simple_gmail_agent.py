@@ -2,7 +2,7 @@ from agents import Agent, Runner
 from tools.gmail_tools import (
     send_email, draft_email, read_email, search_emails, modify_email, 
     delete_email, list_email_labels, create_label, get_latest_emails,
-    gmail_tools  # Import the main tools instance for authentication
+    get_latest_email_with_body, gmail_tools  # Import the main tools instance for authentication
 )
 import logging
 
@@ -28,7 +28,7 @@ async def gmail_agent(request: str) -> str:
         - Read emails with full content and attachment details
         - Search emails using Gmail's query syntax
         - List and manage email labels
-        - Get latest emails from inbox
+        - Get latest emails from inbox (with or without full body)
         - Modify email labels (mark as read/unread, archive, etc.)
         
         Gmail search syntax examples:
@@ -39,8 +39,13 @@ async def gmail_agent(request: str) -> str:
         - 'after:2023-01-01' - emails after specific date
         - 'label:important' - emails with specific label
         
-        For requests like "what's my last email" or "latest email", use get_latest_emails.
-        For reading specific emails, use search_emails first to find the email ID, then read_email.
+        IMPORTANT - Tool Selection Guide:
+        - For "what's my last email" or "latest email" or "most recent email" requests: 
+          USE get_latest_email_with_body() to get the full body content
+        - For "latest emails" (plural) or "recent emails": 
+          USE get_latest_emails() to get a list with summaries
+        - For reading specific emails by ID: USE read_email(message_id)
+        - For finding emails first: USE search_emails() then read_email() if full body needed
         
         Always provide helpful and detailed responses about the Gmail operations performed.""",
         tools=[
@@ -52,7 +57,8 @@ async def gmail_agent(request: str) -> str:
             delete_email,
             list_email_labels,
             create_label,
-            get_latest_emails
+            get_latest_emails,
+            get_latest_email_with_body
         ]
     )
     
