@@ -15,6 +15,11 @@ dependencies = [
     "pytz>=2024.2",
     "uvicorn>=0.35.0",
     "websockets>=15.0.1",
+    "google-auth>=2.27.0",
+    "google-auth-oauthlib>=1.2.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-api-python-client>=2.112.0",
+    "email-validator>=2.1.0",
 ]
 
 [dependency-groups]
