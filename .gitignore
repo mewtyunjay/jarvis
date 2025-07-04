@@ -219,6 +219,11 @@ checkpoints/
 data/
 datasets/
 
+# Authentication keys and secrets
+gcp-oauth.keys.json
+*.keys.json
+*.secrets.json
+
 # OS generated files
 .DS_Store?
 ._*
