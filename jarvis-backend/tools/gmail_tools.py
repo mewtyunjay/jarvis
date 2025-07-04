@@ -25,6 +25,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from email_validator import validate_email, EmailNotValidError
+from agents import function_tool
 
 logger = logging.getLogger(__name__)
 
@@ -955,3 +956,184 @@ class GmailTools:
 
 # Global instance
 gmail_tools = GmailTools()
+
+
+# Function tool decorators for agent integration
+@function_tool
+async def send_email(
+    to: str,
+    subject: str,
+    body: str,
+    cc: Optional[str] = None,
+    bcc: Optional[str] = None,
+    attachments: Optional[List[str]] = None,
+    html: bool = False
+) -> str:
+    """Send an email with optional attachments, CC, BCC, and HTML formatting"""
+    try:
+        result = await gmail_tools.send_email(
+            to=to.split(',') if ',' in to else to,
+            subject=subject,
+            body=body,
+            cc=cc.split(',') if cc and ',' in cc else cc,
+            bcc=bcc.split(',') if bcc and ',' in bcc else bcc,
+            attachments=attachments,
+            html=html
+        )
+        return f"✅ Email sent successfully! Message ID: {result.get('message_id', 'N/A')}"
+    except Exception as e:
+        return f"❌ Failed to send email: {e}"
+
+
+@function_tool
+async def draft_email(
+    to: str,
+    subject: str,
+    body: str,
+    cc: Optional[str] = None,
+    bcc: Optional[str] = None,
+    attachments: Optional[List[str]] = None,
+    html: bool = False
+) -> str:
+    """Create an email draft with optional attachments, CC, BCC, and HTML formatting"""
+    try:
+        result = await gmail_tools.draft_email(
+            to=to.split(',') if ',' in to else to,
+            subject=subject,
+            body=body,
+            cc=cc.split(',') if cc and ',' in cc else cc,
+            bcc=bcc.split(',') if bcc and ',' in bcc else bcc,
+            attachments=attachments,
+            html=html
+        )
+        return f"✅ Draft created successfully! Draft ID: {result.get('draft_id', 'N/A')}"
+    except Exception as e:
+        return f"❌ Failed to create draft: {e}"
+
+
+@function_tool
+async def read_email(message_id: str) -> str:
+    """Read an email with full details including attachments"""
+    try:
+        email = await gmail_tools.read_email(message_id)
+        
+        result = f"""📧 Email Details:
+From: {email['from']}
+To: {email['to']}
+Subject: {email['subject']}
+Date: {email['date']}
+
+Body:
+{email['body'][:500]}{'...' if len(email['body']) > 500 else ''}
+"""
+        
+        if email['attachments']:
+            result += f"\n📎 Attachments ({len(email['attachments'])}):\n"
+            for att in email['attachments']:
+                result += f"  - {att['filename']} ({att['size']} bytes)\n"
+        
+        return result
+    except Exception as e:
+        return f"❌ Failed to read email: {e}"
+
+
+@function_tool
+async def search_emails(query: str, max_results: int = 10) -> str:
+    """Search emails using Gmail query syntax (e.g., 'from:user@domain.com', 'is:unread')"""
+    try:
+        emails = await gmail_tools.search_emails(query, max_results)
+        
+        if not emails:
+            return f"📭 No emails found for query: {query}"
+        
+        result = f"📧 Found {len(emails)} emails for '{query}':\n\n"
+        
+        for i, email in enumerate(emails, 1):
+            result += f"{i}. From: {email['from']}\n"
+            result += f"   Subject: {email['subject']}\n"
+            result += f"   Date: {email['date']}\n"
+            result += f"   ID: {email['id']}\n"
+            result += f"   Snippet: {email['snippet'][:100]}...\n\n"
+        
+        return result
+    except Exception as e:
+        return f"❌ Failed to search emails: {e}"
+
+
+@function_tool
+async def modify_email(message_id: str, add_labels: Optional[List[str]] = None, remove_labels: Optional[List[str]] = None) -> str:
+    """Add or remove labels from an email (e.g., mark as read/unread, archive, etc.)"""
+    try:
+        result = await gmail_tools.modify_email(message_id, add_labels, remove_labels)
+        return f"✅ Email labels modified successfully! Current labels: {result.get('labels', [])}"
+    except Exception as e:
+        return f"❌ Failed to modify email: {e}"
+
+
+@function_tool
+async def delete_email(message_id: str) -> str:
+    """Permanently delete an email"""
+    try:
+        result = await gmail_tools.delete_email(message_id)
+        return f"✅ Email deleted successfully!"
+    except Exception as e:
+        return f"❌ Failed to delete email: {e}"
+
+
+@function_tool
+async def list_email_labels() -> str:
+    """List all Gmail labels (system and user-defined)"""
+    try:
+        labels = await gmail_tools.list_email_labels()
+        
+        system_labels = [l for l in labels if l['type'] == 'system']
+        user_labels = [l for l in labels if l['type'] == 'user']
+        
+        result = f"📋 Gmail Labels ({len(labels)} total):\n\n"
+        
+        if system_labels:
+            result += f"🔧 System Labels ({len(system_labels)}):\n"
+            for label in system_labels:
+                result += f"  - {label['name']} (ID: {label['id']})\n"
+            result += "\n"
+        
+        if user_labels:
+            result += f"👤 User Labels ({len(user_labels)}):\n"
+            for label in user_labels:
+                result += f"  - {label['name']} (ID: {label['id']})\n"
+        
+        return result
+    except Exception as e:
+        return f"❌ Failed to list labels: {e}"
+
+
+@function_tool
+async def create_label(name: str, message_list_visibility: str = 'show', label_list_visibility: str = 'labelShow') -> str:
+    """Create a new Gmail label"""
+    try:
+        result = await gmail_tools.create_label(name, message_list_visibility, label_list_visibility)
+        return f"✅ Label '{name}' created successfully! ID: {result.get('label_id', 'N/A')}"
+    except Exception as e:
+        return f"❌ Failed to create label: {e}"
+
+
+@function_tool
+async def get_latest_emails(count: int = 5) -> str:
+    """Get the latest emails from inbox"""
+    try:
+        emails = await gmail_tools.search_emails('in:inbox', max_results=count)
+        
+        if not emails:
+            return "📭 No emails found in inbox"
+        
+        result = f"📧 Latest {len(emails)} emails from inbox:\n\n"
+        
+        for i, email in enumerate(emails, 1):
+            result += f"{i}. From: {email['from']}\n"
+            result += f"   Subject: {email['subject']}\n"
+            result += f"   Date: {email['date']}\n"
+            result += f"   Snippet: {email['snippet'][:100]}...\n\n"
+        
+        return result
+    except Exception as e:
+        return f"❌ Failed to get latest emails: {e}"
