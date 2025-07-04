@@ -41,4 +41,18 @@ class JarvisOrchestrator:
         )
 
         result = await Runner.run(orchestrator, request)
+        
+        # Show tools called
+        tools_called = []
+        for item in result.new_items:
+            if hasattr(item, 'type') and item.type == 'tool_call_item':
+                raw = item.raw_item
+                tool_name = raw.name if hasattr(raw, 'name') else raw.get('name', 'unknown')
+                tools_called.append(tool_name)
+
+        if tools_called:
+            print("🤖 Jarvis tools called:")
+            for i, tool_name in enumerate(tools_called, 1):
+                print(f"   {i}. {tool_name}")
+        
         return result.final_output if result.final_output else "Request processed"

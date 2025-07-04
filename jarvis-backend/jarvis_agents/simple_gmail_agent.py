@@ -59,4 +59,17 @@ async def gmail_agent(request: str) -> str:
     # Run the agent with the request
     result = await Runner.run(agent, request)
     
+    # Show tools called (like the original MCP implementation)
+    tools_called = []
+    for item in result.new_items:
+        if hasattr(item, 'type') and item.type == 'tool_call_item':
+            raw = item.raw_item
+            tool_name = raw.name if hasattr(raw, 'name') else raw.get('name', 'unknown')
+            tools_called.append(tool_name)
+
+    if tools_called:
+        print("🔧 Gmail tools called:")
+        for i, tool_name in enumerate(tools_called, 1):
+            print(f"   {i}. {tool_name}")
+    
     return result.final_output if result and result.final_output else "Gmail request processed."
