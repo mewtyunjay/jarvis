@@ -9,8 +9,11 @@ wheels/
 # Virtual environments
 .venv
 
-#Environment Variables
+# Environment Variables
 .env
 
-#mcp config file
+# MCP config file
 mcp_config.json
+
+# Misc
+core
