@@ -1,0 +1,12 @@
+[project]
+name = "jarvis-playground"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai>=1.25.0",
+    "openai>=1.95.1",
+    "openai-agents>=0.1.0",
+    "pyyaml>=6.0.2",
+]
