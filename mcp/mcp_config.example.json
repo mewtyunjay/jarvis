@@ -1,5 +1,3 @@
-// Similar to Claude Desktop MCP Config file
-
 {
   "mcpServers": {
     "filesystem": {

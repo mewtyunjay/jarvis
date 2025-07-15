@@ -1,19 +1,27 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
 build/
 dist/
-wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
-.venv
+.venv/
 
 # Environment Variables
 .env
 
+# uv package manager
+.uv/
+
+# Test files
+test/
+
+# Ruff cache
+.ruff_cache/
+
 # MCP config file
 mcp_config.json
 
-# Misc
-test
+# macOS system files
+.DS_Store
