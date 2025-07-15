@@ -1,0 +1,93 @@
+// Similar to Claude Desktop MCP Config file
+
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 30
+    },
+    "fetch": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 30
+    },
+    "brave-search": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "YOUR_BRAVE_API_KEY_HERE"
+      },
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 30
+    },
+    "sqlite": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "path/to/your/database.db"
+      ],
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 45
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+      },
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 60
+    },
+    "slack": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "YOUR_SLACK_BOT_TOKEN_HERE",
+        "SLACK_TEAM_ID": "YOUR_SLACK_TEAM_ID_HERE"
+      },
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 60
+    },
+    "puppeteer": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 90
+    },
+    "exa-remote": {
+      "type": "streamable_http",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey=YOUR_EXA_API_KEY_HERE",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "OpenAI-Agents-MCP-Client"
+      },
+      "timeout": 30.0,
+      "sse_read_timeout": 300.0,
+      "cache_tools_list": true,
+      "client_session_timeout_seconds": 45
+    },
+    "custom-sse-server": {
+      "type": "sse",
+      "url": "http://localhost:3001/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_AUTH_TOKEN_HERE",
+        "Content-Type": "application/json"
+      },
+      "timeout": 30.0,
+      "sse_read_timeout": 600.0,
+      "cache_tools_list": false,
+      "client_session_timeout_seconds": 120
+    }
+  }
+}

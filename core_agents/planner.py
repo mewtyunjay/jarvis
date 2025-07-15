@@ -13,7 +13,7 @@ class PlannerAgent:
     def __init__(self,
         api_key: str | None = None,
         model: str = "gemini-2.5-flash",
-        mcp_file_path: str = "mcp_config.json"
+        mcp_file_path: str = "MCP/mcp_config.json"
     ):
         self.MODEL = model
         if not api_key:

@@ -1,7 +1,7 @@
 from core_agents.planner import PlannerAgent
-from agents import Agent, Runner
+from agents import Runner
 from openai.types.responses import ResponseTextDeltaEvent
-from core_agents.agent_factory import create_agent_from_spec, load_mcp_registry
+from core_agents.agent_factory import AgentFactory
 import asyncio
 import contextlib
 
@@ -9,25 +9,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def print_agent(agent):
-    print("Agent created:")
+    print("\n Agent created:")
     print(f"  Name: {agent.name}")
     print(f"  Instructions: {agent.instructions}")
-    print(f"  MCP Servers: {[server.name for server in agent.mcp_servers]}")
+    print(f"  MCP Servers: {[server.name for server in agent.mcp_servers]} \n")
 
 async def main():
     # Get the agent spec from the planner
     planner_agent = PlannerAgent()
+    agent_factory = AgentFactory()
+
     user_input = input("Enter your query: ")
     agent_spec = planner_agent.run(user_input)
 
-    # Load MCP config
-    mcp_registry = load_mcp_registry("/Users/mrityunjay/Code/2025/jarvis_playground/mcp_config.json")
-
-    # Create the agent from factory
     async with contextlib.AsyncExitStack() as stack:
-        # Pass the stack into create_agent_from_spec
-        custom_agent = await create_agent_from_spec(agent_spec, mcp_registry, stack)
-        print(f"Input Prompt to Custom Agent: {agent_spec.prompt}")
+
+        # Create custom agent based on agent spec
+        custom_agent = await agent_factory.create_agent_from_spec(agent_spec, stack)
+
+        # Print agent info
+        print_agent(custom_agent)
 
         # Normal Output
         # result = await Runner.run(starting_agent=custom_agent, input=agent_spec.prompt)
