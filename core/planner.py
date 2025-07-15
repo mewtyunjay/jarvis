@@ -38,9 +38,9 @@ class PlannerAgent:
                         Detailed steps atomically in which the task can be accomplished.
                         Each atomic step is to be performed by independent agent, and if it required two agents, it should be done in order to avoid cyclic dependencies.
                         It should be numbered. Instruct the output to be plaintext, no markdown formatting and do not ask if the user wants anything else.
-
+                        Do not suggest specific functions, just which tool (gmail, github etc) to use and what action to perform.
             Mention the best format to get the information so that when information trickles down from tool to tool, only relevant information is passed.
-
+            For any kind of event creation, always ask the agent to return the link to event created whenever possible.
             Output only the agent specification in the requested structured format. Do not include explanations or additional commentary.
             This prompt ensures the agent will:
                 1. Thoroughly understand and decompose the user's intent.

@@ -1,7 +1,11 @@
 import json
-from agents import Agent
+from agents import Agent, set_tracing_disabled
 from agents.mcp import MCPServerStdio, MCPServerSse, MCPServerStreamableHttp
+from agents.extensions.models.litellm_model import LitellmModel
 from typing import Any
+import os
+
+# set_tracing_disabled(True)
 
 class AgentFactory:
     def __init__(self, config_path: str = "MCP/mcp_config.json"):
@@ -41,7 +45,7 @@ class AgentFactory:
                     "encoding_error_handler": mcp_conf.get("encoding_error_handler", "strict")
                 },
                 cache_tools_list=mcp_conf.get("cache_tools_list", False),
-                client_session_timeout_seconds=mcp_conf.get("client_session_timeout_seconds"),
+                client_session_timeout_seconds=mcp_conf.get("client_session_timeout_seconds", 60),
                 tool_filter=mcp_conf.get("tool_filter")
             )
         elif server_type == "sse":
@@ -110,6 +114,7 @@ class AgentFactory:
 
         agent = Agent(
             name=agent_spec.name,
+            # model=LitellmModel(model="gemini/gemini-2.5-flash", api_key=os.getenv("GOOGLE_API_KEY")),
             instructions=agent_spec.instructions,
             mcp_servers=servers,
         )
