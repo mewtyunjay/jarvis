@@ -5,7 +5,7 @@ from typing import Any
 
 class AgentFactory:
     def __init__(self, config_path: str = "MCP/mcp_config.json"):
-
+        """Initialize the AgentFactory with the path to the MCP configuration file."""
         self.config_path = config_path
         self._mcp_registry = None
 

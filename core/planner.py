@@ -28,21 +28,24 @@ class PlannerAgent:
             2. Break down the query into clear, actionable steps or tasks needed to fulfill the user's intent.
             3. Design an agent specification in structured YAML or JSON format, following this schema:
                 name: A concise, descriptive name for the agent.
-                instructions: A one-sentence summary of the agent's primary function with specificity in mind regarding domains. Start with
+                instructions: A one-sentence summary of the agent's primary function. Start with
                 you are a helpful agent who ...
-                mcp_servers: List of relevant MCP server from {self.mcp_servers}.
+                mcp_servers: List of relevant MCP server from:
+                    <mcp_servers>
+                    {self.mcp_servers}
+                    </mcp_servers>.
                 prompt: A well-crafted prompt that will enable the agent to perform the required tasks effectively.
                         Detailed steps atomically in which the task can be accomplished.
                         Each atomic step is to be performed by independent agent, and if it required two agents, it should be done in order to avoid cyclic dependencies.
                         It should be numbered. Instruct the output to be plaintext, no markdown formatting and do not ask if the user wants anything else.
+
+            Mention the best format to get the information so that when information trickles down from tool to tool, only relevant information is passed.
 
             Output only the agent specification in the requested structured format. Do not include explanations or additional commentary.
             This prompt ensures the agent will:
                 1. Thoroughly understand and decompose the user's intent.
                 2. Generate a complete and structured agent configuration.
                 3. Provide clear, actionable instructions and a high-quality prompt for downstream use.
-
-
             '''
 
     def __get_mcp_servers(self, mcp_file: str) -> list[str] | None:
