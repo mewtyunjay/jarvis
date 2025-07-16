@@ -1,17 +1,23 @@
 import json
-from agents import Agent, set_tracing_disabled
+from agents import Agent, set_tracing_disabled  # noqa
 from agents.mcp import MCPServerStdio, MCPServerSse, MCPServerStreamableHttp
-from agents.extensions.models.litellm_model import LitellmModel
+from agents.extensions.models.litellm_model import LitellmModel  # noqa
 from typing import Any
-import os
+import os  # noqa
 
 # set_tracing_disabled(True) # For LiteLLM models
 
+
 class AgentFactory:
-    def __init__(self, config_path: str = "MCP/mcp_config.json"):
+    def __init__(self, config_path: str = "MCP/mcp_config.json", debug: bool = False):
         """Initialize the AgentFactory with the path to the MCP configuration file."""
         self.config_path = config_path
         self._mcp_registry = None
+        self.debug = debug
+
+    def _debug_log(self, msg):
+        if self.debug:
+            print(f"[AgentFactory] {msg}")
 
     def load_mcp_registry(self) -> dict[str, Any]:
         """Load and cache the MCP registry from config file"""
@@ -26,14 +32,14 @@ class AgentFactory:
         return self._mcp_registry
 
     def reload_config(self) -> None:
-            """Force reload of the configuration file"""
-            self._mcp_registry = None
-            self.load_mcp_registry()
+        """Force reload of the configuration file"""
+        self._mcp_registry = None
+        self.load_mcp_registry()
 
     async def create_mcp_server(self, mcp_name: str, mcp_conf: dict[str, Any], stack):
         """Create an MCP server based on its type configuration"""
         server_type = mcp_conf.get("type", "stdio")  # Default to stdio if not specified
-
+        self._debug_log(f"Creating MCP server {mcp_name} of type {server_type}")
         if server_type == "stdio":
             server = MCPServerStdio(
                 name=mcp_name,
@@ -42,11 +48,11 @@ class AgentFactory:
                     "args": mcp_conf.get("args", []),
                     "env": mcp_conf.get("env", {}),
                     "encoding": mcp_conf.get("encoding", "utf-8"),
-                    "encoding_error_handler": mcp_conf.get("encoding_error_handler", "strict")
+                    "encoding_error_handler": mcp_conf.get("encoding_error_handler", "strict"),
                 },
                 cache_tools_list=mcp_conf.get("cache_tools_list", False),
                 client_session_timeout_seconds=mcp_conf.get("client_session_timeout_seconds", 60),
-                tool_filter=mcp_conf.get("tool_filter")
+                tool_filter=mcp_conf.get("tool_filter"),
             )
         elif server_type == "sse":
             server = MCPServerSse(
@@ -55,11 +61,11 @@ class AgentFactory:
                     "url": mcp_conf["url"],
                     "headers": mcp_conf.get("headers", {}),
                     "timeout": mcp_conf.get("timeout", 30.0),  # HTTP request timeout in seconds
-                    "sse_read_timeout": mcp_conf.get("sse_read_timeout", 300.0)  # SSE connection timeout in seconds
+                    "sse_read_timeout": mcp_conf.get("sse_read_timeout", 300.0),  # SSE connection timeout in seconds
                 },
                 cache_tools_list=mcp_conf.get("cache_tools_list", False),
                 client_session_timeout_seconds=mcp_conf.get("client_session_timeout_seconds"),
-                tool_filter=mcp_conf.get("tool_filter")
+                tool_filter=mcp_conf.get("tool_filter"),
             )
         elif server_type == "streamable_http":
             server = MCPServerStreamableHttp(
@@ -68,35 +74,34 @@ class AgentFactory:
                     "url": mcp_conf["url"],
                     "headers": mcp_conf.get("headers", {}),
                     "timeout": mcp_conf.get("timeout", 60.0),
-                    "sse_read_timeout": mcp_conf.get("sse_read_timeout", 300.0)
+                    "sse_read_timeout": mcp_conf.get("sse_read_timeout", 300.0),
                 },
                 cache_tools_list=mcp_conf.get("cache_tools_list", False),
                 client_session_timeout_seconds=mcp_conf.get("client_session_timeout_seconds"),
-                tool_filter=mcp_conf.get("tool_filter")
+                tool_filter=mcp_conf.get("tool_filter"),
             )
         else:
-            raise ValueError(f"Unsupported MCP server type: {server_type}. Supported types: stdio, sse, streamable_http")
+            raise ValueError(
+                f"Unsupported MCP server type: {server_type}. Supported types: stdio, sse, streamable_http"
+            )
 
         # Connect the server using the async context manager
         connected_server = await stack.enter_async_context(server)
+        self._debug_log(f"Connected to server: {mcp_name}")
         return connected_server
 
     async def create_agent_from_spec(self, agent_spec, stack) -> Agent:
-        """
-        Create an agent from specification with MCP servers
+        """Create an agent from specification with MCP servers"""
 
-        Args:
-            agent_spec: Object with name, instructions, mcp_servers, and prompt attributes
-            stack: AsyncExitStack for managing server connections
-
-        Returns:
-            Agent: Configured agent with MCP servers
-        """
-        # Load registry
         mcp_registry = self.load_mcp_registry()
 
         # Validation
-        if not hasattr(agent_spec, "name") or not hasattr(agent_spec, "instructions") or not hasattr(agent_spec, "mcp_servers") or not hasattr(agent_spec, "prompt"):
+        if (
+            not hasattr(agent_spec, "name")
+            or not hasattr(agent_spec, "instructions")
+            or not hasattr(agent_spec, "mcp_servers")
+            or not hasattr(agent_spec, "prompt")
+        ):
             raise ValueError("agent_spec is missing required fields.")
         if not isinstance(agent_spec.mcp_servers, list) or not agent_spec.mcp_servers:
             raise ValueError("agent_spec.mcp_servers must be a non-empty list.")
@@ -118,6 +123,10 @@ class AgentFactory:
             instructions=agent_spec.instructions,
             mcp_servers=servers,
         )
+        self._debug_log("Created agent")
+        self._debug_log(f"Name: {agent.name}")
+        self._debug_log(f"Instructions: {agent.instructions}")
+        self._debug_log(f"MCP Servers: {[server.name for server in agent.mcp_servers]}")
         return agent
 
     def get_available_servers(self) -> list[str]:

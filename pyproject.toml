@@ -15,7 +15,7 @@ dependencies = [
 dev = ["pyright>=1.1.403", "ruff>=0.12.3"]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 indent-width = 4
 # target-version = "py311"
 
@@ -24,7 +24,6 @@ select = [
     "E",
     "F",
     "W",
-    "I",
     "N",
     "UP",
     "B",
@@ -34,7 +33,7 @@ select = [
     "ERA",
     "T20",
 ] # Example: enable specific rule codes
-ignore = ["ERA001", "T201"]
+ignore = ["ERA001", "T201", "I"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

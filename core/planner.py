@@ -1,30 +1,23 @@
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 from google import genai
 import json
 import os
-
-class ToolApprovalSpec(BaseModel):
-    server: str
-    tools: list[str]
-
-class AgentSpec(BaseModel):
-    name: str
-    instructions: str
-    mcp_servers : list[str]
-    prompt: str
-    tools_requiring_approval: list[ToolApprovalSpec] = []
+from core.models import AgentSpec
 
 
 class PlannerAgent:
-    def __init__(self,
+    def __init__(
+        self,
         api_key: str | None = None,
         model: str = "gemini-2.5-flash",
-        mcp_tools_file: str = "MCP/mcp_tools.json"
-        ):
+        mcp_tools_file: str = "MCP/mcp_tools.json",
+        debug: bool = False,
+    ):
         self.MODEL = model
+        self.debug = debug
 
         if not api_key:
-            api_key = os.environ.get('GOOGLE_API_KEY')
+            api_key = os.environ.get("GOOGLE_API_KEY")
         if not api_key:
             raise ValueError("API Key not provided for Gemini")
         self.client = genai.Client(api_key=api_key)
@@ -73,10 +66,13 @@ class PlannerAgent:
         Begin the agent specification.
         """
 
+    def _debug_log(self, msg):
+        if self.debug:
+            print(f"[PlannerAgent] {msg}")
 
     def __get_mcp_servers(self, mcp_tools_file: str):
         try:
-            with open(mcp_tools_file, 'r') as f:
+            with open(mcp_tools_file) as f:
                 mcp_tools = json.load(f)
             servers = list(mcp_tools.keys())
             return mcp_tools, servers
@@ -95,8 +91,9 @@ class PlannerAgent:
                 out.append(f"  - {t}: {desc}")
         return "\n".join(out)
 
-    def run(self, user_input:str):
+    def run(self, user_input: str):
         try:
+            self._debug_log(f"Running planner with input: {user_input}")
             response = self.client.models.generate_content(
                 model=self.MODEL,
                 contents=user_input,
@@ -104,14 +101,20 @@ class PlannerAgent:
                     "system_instruction": self.SYSTEM_PROMPT,
                     "response_mime_type": "application/json",
                     "response_schema": AgentSpec,
-                    },
+                },
             )
             if response.text is None:
                 raise RuntimeError("No response text received from model.")
             data = json.loads(response.text)
             spec = AgentSpec.model_validate(data)
+            self._debug_log("Planner produced AgentSpec")
+            self._debug_log(f"Name: {spec.name}")
+            self._debug_log(f"Instructions: {spec.instructions}")
+            self._debug_log(f"MCP Servers: {spec.mcp_servers}")
+            self._debug_log(f"Tools requiring approval: {spec.tools_requiring_approval=}")
+            self._debug_log(f"Prompt to runner: {spec.prompt}")
             return spec
         except ValidationError as e:
-            raise ValueError(f"AgentSpec validation failed: {e}")
+            raise ValueError(f"AgentSpec validation failed: {e}") from e
         except Exception as e:
-            raise RuntimeError(f"Failed to generate agent specification: {e}")
+            raise RuntimeError(f"Failed to generate agent specification: {e}") from e
