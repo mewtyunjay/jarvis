@@ -83,4 +83,4 @@ Enter your query when prompted. Examples:
 
 ---
 
-**WIP** - Execute with caution for operations that modify files, send communications, or access external services. Tools for Human-In-The-Loop in generated dynamically, so verify Planner Agent's output.
+**WIP** - Execute with caution for operations that modify files, send communications, or access external services. HITL is decided by the Planner Agent, so verify the agents created before executing them.
