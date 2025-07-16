@@ -16,6 +16,7 @@ def print_agent(agent):
     print(f"  Instructions: {agent.instructions}")
     print(f"  MCP Servers: {[server.name for server in agent.mcp_servers]} \n")
 
+
 async def main():
 
     # CLI args
@@ -37,6 +38,7 @@ async def main():
         # Print agent info
         if args.debug:
             print("========= Debug =========")
+            print(f"Tools needing approval: {agent_spec.tools_requiring_approval}")
             print(f"Custom Agent:")
             print_agent(custom_agent)
             print(f"Input to Custom Agent:")
@@ -46,7 +48,7 @@ async def main():
         # result = await Runner.run(starting_agent=custom_agent, input=agent_spec.prompt)
         # print(result.final_output)
 
-        # #Streaming Output
+        # Streaming Output
         result = Runner.run_streamed(custom_agent, input=agent_spec.prompt)
         if args.debug:
             async for event in result.stream_events():

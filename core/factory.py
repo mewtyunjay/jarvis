@@ -5,7 +5,7 @@ from agents.extensions.models.litellm_model import LitellmModel
 from typing import Any
 import os
 
-# set_tracing_disabled(True)
+# set_tracing_disabled(True) # For LiteLLM models
 
 class AgentFactory:
     def __init__(self, config_path: str = "MCP/mcp_config.json"):
