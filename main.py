@@ -16,6 +16,12 @@ def print_agent(agent):
     print(f"  Instructions: {agent.instructions}")
     print(f"  MCP Servers: {[server.name for server in agent.mcp_servers]} \n")
 
+def build_approval_set(tools_requiring_approval):
+    return set(
+        (spec.server, tool)
+        for spec in tools_requiring_approval
+        for tool in spec.tools
+    )
 
 async def main():
 
@@ -30,6 +36,10 @@ async def main():
 
     user_input = input("Enter your query: ")
     agent_spec = planner_agent.run(user_input)
+
+    # build HITL tools set
+    approval_set = build_approval_set(agent_spec.tools_requiring_approval)
+
 
     async with contextlib.AsyncExitStack() as stack:
         # Create custom agent based on agent spec

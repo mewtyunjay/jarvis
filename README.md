@@ -13,6 +13,12 @@ Jarvis combines intelligent planning with modular tool access through MCP server
 
 This architecture enables dynamic agent creation for diverse tasks like calendar management, web research, file operations, team communication, and more.
 
+## Demo
+
+![Jarvis Demo](docs/images/demo-screenshot.png)
+
+*Jarvis in action: Intelligent agent creation and multi-step task execution with agents built dynamically*
+
 ## Features
 
 - **Intelligent Planning**: Automatic agent configuration based on natural language queries
