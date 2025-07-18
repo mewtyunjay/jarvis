@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Request, HTTPException
+import contextlib
+
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from core.planner import PlannerAgent
+from openai.types.responses import ResponseTextDeltaEvent
+
 from core.factory import AgentFactory
 from core.hitl_hooks import build_hitl_hooks
-from openai.types.responses import ResponseTextDeltaEvent
-import contextlib
+from core.planner import PlannerAgent
 
 app = FastAPI()
 
