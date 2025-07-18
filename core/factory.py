@@ -2,10 +2,11 @@ import json
 from contextlib import AsyncExitStack
 from typing import Any
 
+# from agno import tools #noqa
 from agno.agent import Agent
-from agno.models.google import Gemini
+from agno.models.google import Gemini  # noqa
 from agno.models.openai import OpenAIChat  # noqa
-from agno.tools.mcp import MCPTools
+from agno.tools.mcp import MCPTools, SSEClientParams, StreamableHTTPClientParams
 
 from mcp import StdioServerParameters
 
@@ -47,24 +48,28 @@ class AgentFactory:
                 args=conf.get("args", []),
                 env=conf.get("env", {}),
             )
-            tools_ctx = MCPTools(server_params=params)
+            tools_ctx = MCPTools(transport="stdio", server_params=params)
 
         elif stype == "sse":
-            tools_ctx = MCPTools(
+            sse_params = SSEClientParams(
                 url=conf["url"],
-                transport="sse",
                 headers=conf.get("headers", {}),
                 timeout=conf.get("timeout", 30.0),
-                read_timeout=conf.get("sse_read_timeout", 300.0),
+                sse_read_timeout=conf.get("sse_read_timeout", 300.0),
             )
+            tools_ctx = MCPTools(transport="sse", server_params=sse_params)
 
         elif stype == "streamable_http":
-            tools_ctx = MCPTools(
+            http_params = StreamableHTTPClientParams(
                 url=conf["url"],
-                transport="streamable-http",
                 headers=conf.get("headers", {}),
                 timeout=conf.get("timeout", 60.0),
-                read_timeout=conf.get("sse_read_timeout", 300.0),
+                sse_read_timeout=conf.get("sse_read_timeout", 300.0),
+            )
+            tools_ctx = MCPTools(
+                transport="streamable-http",
+                server_params=http_params,
+                timeout_seconds=conf.get("timeout", 60.0),
             )
         else:
             raise ValueError(f"Unsupported MCP server type: {stype}")
@@ -83,18 +88,19 @@ class AgentFactory:
         if not getattr(agent_spec, "instructions", None):
             raise ValueError("Invalid AgentSpec passed to factory")
         mcp_registry = self.load_mcp_registry()
-        tools = []
+        mcp_tools = []
         for mcp_name in getattr(agent_spec, "mcp_servers", []) or []:
             if mcp_name not in mcp_registry:
                 raise ValueError(f"MCP server '{mcp_name}' not found in registry")
-            tools.append(await self._connect_mcp_tools(mcp_name, mcp_registry[mcp_name], stack))
+            mcp_tools.append(await self._connect_mcp_tools(mcp_name, mcp_registry[mcp_name], stack))
 
         agent = Agent(
             name=agent_spec.name,
             instructions=agent_spec.instructions,
-            model=Gemini(id="gemini-2.5-flash"),
-            # model=OpenAIChat(id=os.getenv("OPENAI_MODEL", "gpt-4.1-mini")),
-            tools=tools,
+            # model=Gemini(id="gemini-2.5-flash"),
+            model=OpenAIChat(id="gpt-4.1"),
+            # tools=mcp_tools + [ReasoningTools(add_instructions=True)],
+            tools=mcp_tools,
             tool_hooks=tool_hooks or [],
             markdown=True,
         )

@@ -27,15 +27,18 @@ async def main():
         custom_agent = await agent_factory.create_agent_from_spec(agent_spec, stack, tool_hooks=hitl_hooks)
 
         # Stream tokens/events to stdout
-        stream = await custom_agent.arun(agent_spec.prompt, stream=True)
+        stream = await custom_agent.arun(agent_spec.prompt, stream=True, stream_intermediate_steps=True)
         async for event in stream:
             if getattr(event, "event", None) == "RunResponseContent":
                 print(getattr(event, "content", ""), end="", flush=True)
+
             elif getattr(event, "event", None) == "ToolCallCompleted":
                 tool = getattr(event, "tool", None)
                 if tool and getattr(tool, "tool_call_error", False):
                     print(f"\nTool failed: {getattr(tool, 'result', 'error')}")
                     # Optionally: break
+                print(f"\n[ToolCallCompleted] {event.tool.name} → {event.tool.result}")
+
             elif getattr(event, "event", None) == "RunCancelled":
                 print(f"\n{getattr(event, 'agent_message', 'Run cancelled.')}")
                 break

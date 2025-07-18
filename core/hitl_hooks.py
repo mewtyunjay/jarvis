@@ -32,4 +32,4 @@ def build_hitl_hooks(tools_requiring_approval: list[ToolApprovalSpec], debug=Fal
         # execute tool
         return await function_call(**arguments)
 
-    return [hitl_hook]  # Agno expects a list of hooks
+    return [hitl_hook]
