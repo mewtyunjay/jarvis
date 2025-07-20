@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from core.factory import AgentFactory
 from core.hitl_hooks import build_hitl_hooks
 from core.planner import PlannerAgent
+# from core.newplanner import ConversationalPlanner
 
 load_dotenv(override=True)
 
@@ -17,10 +18,13 @@ async def main():
     args = parser.parse_args()
 
     planner_agent = PlannerAgent(debug=args.debug)
+    # planner_agent = ConversationalPlanner(debug=args.debug)
     agent_factory = AgentFactory(debug=args.debug)
 
     user_input = input("Enter your query: ")
     agent_spec = planner_agent.run(user_input)
+    print(agent_spec)
+    exit()
     hitl_hooks = build_hitl_hooks(agent_spec.tools_requiring_approval, debug=args.debug)
 
     async with contextlib.AsyncExitStack() as stack:
