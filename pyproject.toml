@@ -1,13 +1,14 @@
 [project]
 name = "jarvis-playground"
 version = "0.1.0"
-description = "Add your description here"
+description = "general purpose agent"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "agno>=1.7.5",
     "fastapi[standard]>=0.104.0",
     "google-genai>=1.25.0",
-    "litellm>=1.74.3",
+    "mcp[cli]>=1.11.0",
     "openai>=1.95.1",
     "openai-agents[litellm]>=0.1.0",
     "uvicorn>=0.35.0",
@@ -17,15 +18,16 @@ dependencies = [
 dev = ["pyright>=1.1.403", "ruff>=0.12.3"]
 
 [tool.ruff]
-line-length = 120
+line-length = 110
 indent-width = 4
-# target-version = "py311"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
     "E",
     "F",
     "W",
+    "I",
     "N",
     "UP",
     "B",
@@ -35,7 +37,7 @@ select = [
     "ERA",
     "T20",
 ] # Example: enable specific rule codes
-ignore = ["ERA001", "T201", "I"]
+ignore = ["ERA001", "T201", "E501"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

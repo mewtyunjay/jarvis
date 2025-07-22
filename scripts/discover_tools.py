@@ -1,79 +1,81 @@
-# This file contains the code for discovering tools from MCP servers
-# Needs to run every time the MCP config is updated
-
-import json
+# mcp_dump_tools.py
 import asyncio
-from agents import Agent
-from agents.mcp import MCPServerStdio, MCPServerSse, MCPServerStreamableHttp
-from agents.run_context import RunContextWrapper
+import json
+from pathlib import Path
+from typing import Any
 
-MCP_CONFIG_PATH = "mcp/mcp_config.json"
-TOOL_MAP_OUTPUT = "mcp/mcp_tools.json"
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.sse import sse_client
+from mcp.client.stdio import stdio_client
+from mcp.client.streamable_http import streamablehttp_client
 
-async def get_tools_for_server(name, conf):
-    """Returns a tuple of tool name, tool description per MCP"""
-    run_context = RunContextWrapper(context=None)
-    agent = Agent(name="discovery_agent", instructions="tool discovery")
+MCP_CONFIG_PATH = Path("mcp/mcp_config.json")
+TOOL_MAP_OUTPUT = Path("mcp/mcp_tools.json")
 
-    server_type = conf.get("type", "stdio")
-    if server_type == "stdio":
-        async with MCPServerStdio(
-            name=name,
-            params={
-                "command": conf["command"],
-                "args": conf.get("args", []),
-                "env": conf.get("env", {}),
-            }
-        ) as server:
-            try:
-                tools = await server.list_tools(run_context, agent)
-                return [(t.name, t.description) for t in tools]
-            except Exception as e:
-                print(f"Error discovering tools for server {name}: {e}")
-                return []
-    elif server_type == 'sse':
-        async with MCPServerSse(
-            name=name,
-            params={
-                "url": conf["url"],
-                "headers": conf.get("headers", {}),
-            }
-        ) as server:
-            try:
-                tools = await server.list_tools(run_context, agent)
-                return [(t.name, t.description) for t in tools]
-            except Exception as e:
-                print(f"Error discovering tools for server {name}: {e}")
-                return []
-    elif server_type == 'streamable_http':
-        async with MCPServerStreamableHttp(
-            name=name,
-            params={
-                "url": conf["url"],
-                "headers": conf.get("headers", {}),
-            }
-        ) as server:
-            try:
-                tool_list = await server.list_tools(run_context, agent)
-                return [(t.name, t.description) for t in tool_list]
-                # return [f"{t.name}: {t.description}" for t in tool_list]
-            except Exception as e:
-                print(f"Error discovering tools for server {name}: {e}")
-                return []
+
+async def _list_tools_stdio(conf: dict[str, Any]) -> list[tuple[str, str]]:
+    params = StdioServerParameters(
+        command=conf["command"],
+        args=conf.get("args", []),
+        env=conf.get("env"),
+    )
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            resp = await session.list_tools()
+            return [(t.name, t.description or "") for t in resp.tools]
+
+
+async def _list_tools_sse(conf: dict[str, Any]) -> list[tuple[str, str]]:
+    # Expected keys: url, headers (opt), timeout (opt seconds), read_timeout (opt seconds)
+    async with sse_client(
+        url=conf["url"],
+        headers=conf.get("headers"),
+        timeout=conf.get("timeout", 60.0),
+        sse_read_timeout=conf.get("sse_read_timeout", 300.0),
+    ) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            resp = await session.list_tools()
+            return [(t.name, t.description or "") for t in resp.tools]
+
+
+async def _list_tools_streamable_http(conf: dict[str, Any]) -> list[tuple[str, str]]:
+    # Expected keys: url, headers (opt), timeout (opt seconds), read_timeout (opt seconds)
+    async with streamablehttp_client(
+        url=conf["url"],
+        headers=conf.get("headers"),
+        timeout=conf.get("timeout", 60.0),
+        sse_read_timeout=conf.get("sse_read_timeout", 300.0),
+    ) as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            resp = await session.list_tools()
+            return [(t.name, t.description or "") for t in resp.tools]
+
+
+async def list_tools_any(name: str, conf: dict[str, Any]) -> list[tuple[str, str]]:
+    stype = conf.get("type", "stdio")
+    if stype == "stdio":
+        return await _list_tools_stdio(conf)
+    if stype == "sse":
+        return await _list_tools_sse(conf)
+    if stype in ("streamable_http", "streamable-http"):
+        return await _list_tools_streamable_http(conf)
+    print(f"Unsupported MCP type for {name}: {stype}")
     return []
 
-async def main():
-    with open(MCP_CONFIG_PATH, "r") as f:
-        mcp_registry = json.load(f)["mcpServers"]
 
-    tool_map = {}
-    for name, conf in mcp_registry.items():
+async def main() -> None:
+    registry = json.loads(MCP_CONFIG_PATH.read_text())["mcpServers"]
+    tool_map: dict[str, list[tuple[str, str]]] = {}
+    for name, conf in registry.items():
         print(f"Discovering tools for {name}...")
-        tool_map[name] = await get_tools_for_server(name, conf)
+        tools = await list_tools_any(name, conf)
+        tool_map[name] = tools
+    TOOL_MAP_OUTPUT.write_text(json.dumps(tool_map, indent=2))
+    print(f"Wrote {TOOL_MAP_OUTPUT}")
 
-    with open(TOOL_MAP_OUTPUT, "w") as f:
-        json.dump(tool_map, f, indent=2)
-    print(f"Tool map written to {TOOL_MAP_OUTPUT}")
 
 if __name__ == "__main__":
     asyncio.run(main())
