@@ -23,8 +23,8 @@ async def main():
 
     user_input = input("Enter your query: ")
     agent_spec = planner_agent.run(user_input)
-    print(agent_spec)
-    exit()
+    # print(agent_spec)
+    # exit()
     hitl_hooks = build_hitl_hooks(agent_spec.tools_requiring_approval, debug=args.debug)
 
     async with contextlib.AsyncExitStack() as stack:
@@ -40,8 +40,9 @@ async def main():
                 tool = getattr(event, "tool", None)
                 if tool and getattr(tool, "tool_call_error", False):
                     print(f"\nTool failed: {getattr(tool, 'result', 'error')}")
+                    break
                     # Optionally: break
-                print(f"\n[ToolCallCompleted] {event.tool.name} → {event.tool.result}")
+                #print(f"\n[ToolCallCompleted] {event.tool.name} → {event.tool.result}")
 
             elif getattr(event, "event", None) == "RunCancelled":
                 print(f"\n{getattr(event, 'agent_message', 'Run cancelled.')}")

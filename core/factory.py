@@ -12,7 +12,7 @@ from mcp import StdioServerParameters
 
 
 class AgentFactory:
-    def __init__(self, config_path: str = "MCP/mcp_config.json", debug: bool = False):
+    def __init__(self, config_path: str = "mcp/mcp_config.json", debug: bool = False):
         """Initialize the AgentFactory with the path to the MCP configuration file."""
         self.config_path = config_path
         self._mcp_registry = None
