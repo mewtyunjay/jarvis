@@ -12,7 +12,7 @@ class PlannerAgent:
         self,
         api_key: str | None = None,
         model: str = "gemini-2.5-flash",
-        mcp_tools_file: str = "MCP/mcp_tools.json",
+        mcp_tools_file: str = "/Users/mrityunjay/Code/2025/jarvis_playground/mcp/mcp_tools.json",
         debug: bool = False,
     ):
         self.MODEL = model
